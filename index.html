@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>世外小班双语衔接工作台 v13.1 - Casper 专属版</title>
+    <style>
+        :root {
+            --primary: #5A8F70;      /* 青外森林绿 */
+            --primary-dark: #3E6B52;
+            --secondary: #F7C844;    /* 暖黄 */
+            --accent: #E87A5D;       /* 晨曦暖橙 */
+            --purple: #8B62CC;       /* PYP 探究紫 */
+            --pink: #EE6A8B;         /* 情绪粉 */
+            --blue: #4A90E2;         /* 世外双语蓝 */
+            --bg: #F8F6F0;           /* 燕麦米白 */
+            --card-bg: #FFFFFF;
+            --text: #2C3E50;
+            --shadow: 0 4px 14px rgba(0,0,0,0.06);
+            --border-radius: 18px;
+            --netease: #C20C0C;      /* 网易云红 */
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            background-color: #2B3A42; 
+            color: var(--text); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh;
+            min-height: 100dvh;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 移动端全屏，PC端外壳响应式 */
+        .container {
+            width: 100%;
+            max-width: 430px;
+            height: 100vh;
+            height: 100dvh;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        }
+
+        @media (min-width: 450px) {
+            body {
+                background-color: #E2DFD7;
+                padding: 20px 0;
+            }
+            .container {
+                height: 844px;
+                border-radius: 40px;
+                border: 12px solid #2B3A42;
+            }
+        }
+
+        /* 头部与 iOS 刘海屏适配 */
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: calc(14px + env(safe-area-inset-top, 0px)) 16px 12px 16px;
+            border-radius: 0 0 24px 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .header-top { display: flex; justify-content: space-between; align-items: center; }
+        .avatar-box { display: flex; align-items: center; gap: 10px; }
+        .avatar { width: 42px; height: 42px; background: var(--secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; border: 2px solid white; flex-shrink: 0; }
+        
+        .user-tag {
+            font-size: 10px;
+            background: rgba(255, 255, 255, 0.25);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: bold;
+            margin-left: 4px;
+        }
+
+        .header-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 6px;
+        }
+
+        .user-select {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 12px;
+            padding: 4px 8px;
+            font-size: 11px;
+            color: white;
+            outline: none;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+        }
+        .user-select option { color: #333; background: white; }
+
+        .countdown-box {
+            background: rgba(255, 255, 255, 0.18);
+            border-radius: 12px;
+            padding: 6px 12px;
+            margin-top: 10px;
+            text-align: center;
+            backdrop-filter: blur(4px);
+            font-size: 11px;
+        }
+        .countdown-days { font-size: 18px; font-weight: bold; color: #FFF; }
+
+        /* 内容区 */
+        .content { flex: 1; overflow-y: auto; padding: 12px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
+        .tab-nav { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
+        .tab-btn { padding: 8px 12px; background: #E5E2D8; border: none; border-radius: 14px; font-size: 11px; color: var(--text); cursor: pointer; white-space: nowrap; transition: all 0.2s; flex-shrink: 0; }
+        .tab-btn.active { background: var(--primary); color: white; font-weight: 600; box-shadow: 0 2px 6px rgba(90, 143, 112, 0.4); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.2s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* 卡片基础样式 */
+        .card { background: var(--card-bg); border-radius: var(--border-radius); padding: 12px 14px; margin-bottom: 10px; box-shadow: var(--shadow); border: 1px solid #ECE9E0; }
+        .card h3 { font-size: 13px; color: var(--text); margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+        .card h4 { font-size: 12px; color: var(--primary-dark); margin-bottom: 6px; }
+
+        /* 徽章 */
+        .pyp-badge { display: inline-block; background: var(--primary); color: white; font-size: 9px; padding: 2px 6px; border-radius: 6px; margin-right: 4px; }
+        .pyp-badge.purple { background: var(--purple); }
+        .pyp-badge.blue { background: var(--blue); }
+        .pyp-badge.orange { background: var(--accent); }
+
+        /* 游戏网格 */
+        .game-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; }
+        .game-card { background: #F9F8F3; border-radius: 12px; padding: 10px; text-align: center; cursor: pointer; border: 1px solid #EAE7DC; transition: transform 0.1s; }
+        .game-card:active { transform: scale(0.97); }
+        .game-icon { font-size: 22px; margin-bottom: 2px; }
+
+        /* 列表项 */
+        .item-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: #F9F8F3; border-radius: 10px; margin-bottom: 6px; }
+        .check-btn { background: var(--primary); color: white; border: none; padding: 6px 12px; border-radius: 12px; font-size: 10px; cursor: pointer; }
+        .check-btn.done { background: #D0E4D5; color: #2E5A3C; font-weight: bold; }
+        .speak-btn { background: var(--blue); color: white; border: none; padding: 6px 10px; border-radius: 8px; font-size: 10px; cursor: pointer; }
+
+        /* 网易云卡片 */
+        .netease-card {
+            background: linear-gradient(135deg, #1A1A1A, #2D1515);
+            color: #FFFFFF;
+            border-radius: var(--border-radius);
+            padding: 14px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(194, 12, 12, 0.4);
+            box-shadow: 0 4px 12px rgba(194, 12, 12, 0.15);
+        }
+        .netease-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .netease-icon { width: 38px; height: 38px; background: var(--netease); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; color: white; font-weight: bold; flex-shrink: 0; }
+        .netease-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            width: 100%;
+            background: var(--netease);
+            color: white;
+            text-decoration: none;
+            padding: 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            box-shadow: 0 3px 8px rgba(194, 12, 12, 0.4);
+        }
+
+        .plan-item { background: #FAF8F2; border: 1px solid #EAE8DF; border-radius: 12px; padding: 10px; margin-bottom: 8px; }
+
+        .sparkle-tag { display: inline-block; background: #F0F7FF; border: 1px solid #BEE3F8; color: var(--blue); font-size: 10px; padding: 5px 9px; border-radius: 12px; margin: 3px 2px; cursor: pointer; }
+        .sparkle-tag.selected { background: var(--blue); color: white; border-color: var(--blue); }
+        .sparkle-tag.purple-tag { background: #F5EEFF; border-color: #D6BCFA; color: var(--purple); }
+        .sparkle-tag.purple-tag.selected { background: var(--purple); color: white; }
+
+        .badge-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 6px; text-align: center; }
+        .badge-item { background: #FAF9F5; border: 1px dashed #DDD; border-radius: 10px; padding: 6px 4px; font-size: 9px; color: #999; }
+        .badge-item.unlocked { background: #FFF9E6; border: 1px solid #F7C844; color: #7A5100; font-weight: bold; }
+
+        /* 底部导航适配 iOS Home Indicator */
+        .footer {
+            min-height: calc(56px + env(safe-area-inset-bottom, 0px));
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+            background: white;
+            border-top: 1px solid #E5E2D8;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .footer-item {
+            flex: 1;
+            text-align: center;
+            font-size: 9px;
+            color: #777;
+            cursor: pointer;
+            padding: 6px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .footer-item.active { color: var(--primary); font-weight: bold; background: rgba(90, 143, 112, 0.08); border-radius: 10px; }
+        .footer-icon { font-size: 18px; margin-bottom: 2px; }
+
+        .star-animation { position: fixed; pointer-events: none; z-index: 1000; color: var(--accent); font-size: 18px; font-weight: bold; animation: floatUp 0.8s ease-out forwards; }
+        @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-40px) scale(1.2); opacity: 0; } }
+
+        .data-panel { background: linear-gradient(135deg, #F0F7FF, #E3F2FD); border: 1px solid #BEE3F8; border-radius: 12px; padding: 12px; margin-bottom: 10px; }
+        .data-btn { background: var(--blue); color: white; border: none; padding: 8px 12px; border-radius: 10px; font-size: 11px; cursor: pointer; margin-right: 6px; }
+        .data-btn.secondary { background: #E5E2D8; color: var(--text); }
+        .hidden-input { display: none; }
+        
+        .history-recorder { display: inline-block; background: var(--secondary); color: #7A5800; font-size: 8px; padding: 1px 5px; border-radius: 4px; margin-left: 4px; font-weight: bold; }
+</style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- 头部 -->
+        <div class="header">
+            <div class="header-top">
+                <div class="avatar-box">
+                    <div class="avatar">👦</div>
+                    <div>
+                        <h2 style="margin: 0; font-size: 15px; display: flex; align-items: center;">
+                            Casper
+                            <span class="user-tag" id="header-user-tag">👩 妈妈</span>
+                        </h2>
+                        <p style="margin: 0; font-size: 10px; opacity: 0.9;">青浦世外 K1 小班</p>
+                    </div>
+                </div>
+                
+                <div class="header-controls">
+                    <!-- 用户选择器 (已并入 Header) -->
+                    <select id="current-user" class="user-select" onchange="changeUser()">
+                        <option value="妈妈">👩 妈妈</option>
+                        <option value="爸爸">👨 爸爸</option>
+                        <option value="奶奶">👵 奶奶</option>
+                        <option value="爷爷">👴 爷爷</option>
+                        <option value="外婆">👵 外婆</option>
+                        <option value="外公">👴 外公</option>
+                    </select>
+
+                    <div style="background: rgba(255,255,255,0.25); padding: 3px 8px; border-radius: 10px; font-size: 10px; font-weight: bold;">
+                        ⭐ <span id="stars-count">25</span> 颗
+                    </div>
+                </div>
+            </div>
+            
+            <div class="countdown-box">
+                🎓 距离9月开学：<span class="countdown-days" id="countdown-days">--</span> <span id="countdown-unit">天</span>
+            </div>
+        </div>
+
+        <!-- 内容主区 -->
+        <div class="content">
+            <!-- 5大功能 Tab -->
+            <div class="tab-nav">
+                <button class="tab-btn active" onclick="switchTab('plan')">📅 衔接策略</button>
+                <button class="tab-btn" onclick="switchTab('uoi')">🔍 世外UOI</button>
+                <button class="tab-btn" onclick="switchTab('bilingual')">🗣️ 双语乐园</button>
+                <button class="tab-btn" onclick="switchTab('skills')">🎯 自理技能</button>
+                <button class="tab-btn" onclick="switchTab('sparkle')">🌟 闪光日记</button>
+            </div>
+
+            <!-- TAB 1: 衔接策略 -->
+            <div id="tab-plan" class="tab-content active">
+                <div class="data-panel">
+                    <h4 style="margin: 0 0 8px 0; font-size: 12px; color: var(--blue);">💾 数据管理</h4>
+                    <p style="font-size: 10px; color: #666; margin-bottom: 8px;">备份或恢复 Casper 的成长数据</p>
+                    <button class="data-btn" onclick="exportData()">📤 导出数据</button>
+                    <button class="data-btn secondary" onclick="document.getElementById('import-file').click()">📥 导入数据</button>
+                    <input type="file" id="import-file" class="hidden-input" accept=".json" onchange="importData(this)">
+                </div>
+
+                <div class="card">
+                    <h3>📅 小班全阶段成长规划</h3>
+                    <div style="font-size: 10px; line-height: 1.6; color: #555;">
+                        <p><strong>1. 入园前衔接期</strong>：调好作息、建立“分离安全感”、练习大声说“我想上厕所”。</p>
+                        <p><strong>2. 小班上学期 (适应期)</strong>：掌握独立用餐、穿鞋穿外套、习惯双语课堂指令。</p>
+                        <p><strong>3. 小班下学期 (探究期)</strong>：主动提问、在 UOI 探究中用英文表达感受、学会同伴合作。</p>
+                    </div>
+                </div>
+
+                <div class="card" style="background: #FDFBF7; border-left: 4px solid var(--accent);">
+                    <h3>💡 家长 4 步家庭引导策略</h3>
+                    <div style="font-size: 10px; line-height: 1.6; color: #444;">
+                        <p style="margin-bottom:4px;"><strong>👂 1. 听 —— 捕捉高频词</strong>：注意孩子蹦出的词，顺着他的话聊。</p>
+                        <p style="margin-bottom:4px;"><strong>💬 2. 聊 —— 启发式提问</strong>：少问“开心吗”，多问“你觉得它摸起来像什么？”</p>
+                        <p style="margin-bottom:4px;"><strong>🎮 3. 玩 —— 低成本生活探究</strong>：做盲盒摸物、手影游戏，将 UOI 融入生活。</p>
+                        <p><strong>🌱 4. 做 —— 鼓励独立行动 (Action)</strong>：自己洗手、收拾玩具。</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>⏰ 每日作息与习惯打卡</h3>
+                    <div class="item-row">
+                        <div>
+                            <div style="font-weight: 600; font-size: 11px;">☀️ 7:30 晨起作息</div>
+                            <div style="font-size: 9px; color: #777;">匹配世外早到校作息</div>
+                        </div>
+                        <button class="check-btn" onclick="toggleDailyCheck(this, event)">每日打卡</button>
+                    </div>
+                    <div class="item-row">
+                        <div>
+                            <div style="font-weight: 600; font-size: 11px;">🍲 独立吃完午餐</div>
+                            <div style="font-size: 9px; color: #777;">30分钟内独立用餐不撒饭</div>
+                        </div>
+                        <button class="check-btn" onclick="toggleDailyCheck(this, event)">每日打卡</button>
+                    </div>
+                    <div class="item-row">
+                        <div>
+                            <div style="font-weight: 600; font-size: 11px;">🚽 大声表达如厕需求</div>
+                            <div style="font-size: 9px; color: #777;">主动说"我想去洗手间"</div>
+                        </div>
+                        <button class="check-btn" onclick="toggleDailyCheck(this, event)">每日打卡</button>
+                    </div>
+                </div>
+
+                <div class="netease-card">
+                    <div class="netease-header">
+                        <div class="netease-icon">🎵</div>
+                        <div>
+                            <div style="font-size: 12px; font-weight: bold;">fufu宝宝的睡前古典音乐</div>
+                            <div style="font-size: 9px; color: #BBB; margin-top: 2px;">网易云音乐专属歌单</div>
+                        </div>
+                    </div>
+                    <p style="font-size: 10px; color: #DDD; margin-bottom: 10px; line-height: 1.4;">
+                        💬 点击下方按钮，手机将自动唤醒网易云 App 并播放 Casper 的睡前专属高品质古典音乐：
+                    </p>
+                    <a href="http://163cn.tv/Cqiy8KZ" target="_blank" rel="noopener noreferrer" class="netease-btn" onclick="addStar(event)">
+                        <span>▶️ 一键调起网易云 App 播放歌单</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- TAB 2: 世外UOI -->
+            <div id="tab-uoi" class="tab-content">
+                <div class="card" style="background: linear-gradient(135deg, #EBF3ED, #F4F8F5); border-left: 4px solid var(--primary);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                        <span class="pyp-badge purple">世外 UOI 核心</span>
+                        <span style="font-size: 10px; font-weight: bold; color: var(--purple);">我们是谁 (Who We Are)</span>
+                    </div>
+                    <div style="font-size: 11px; font-weight: bold; color: var(--primary-dark);">
+                        💡 中心思想：人们通过不同感官探索世界，并学会表达自己
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>📘 5 大 PYP 经典亲子教案</h3>
+                    <div class="plan-item">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-weight:600; font-size:12px; color:var(--primary-dark);">1. 五感小侦探 (我们是谁)</span>
+                            <span class="pyp-badge">探究者</span>
+                        </div>
+                        <p style="font-size:10px; color:#555; margin:3px 0;">🎯 照镜子观察五官、摸神秘盒、用语言表达软与硬。</p>
+                        <button class="speak-btn" style="width:100%;" onclick="speak('Touch your nose! What does it feel like? 摸摸你的小鼻子，感觉怎么样？', 'zh-CN', event)">🔊 亲子引导语音</button>
+                    </div>
+
+                    <div class="plan-item">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-weight:600; font-size:12px; color:var(--primary-dark);">2. 情绪小怪兽 (我们如何表达自己)</span>
+                            <span class="pyp-badge">表达者</span>
+                        </div>
+                        <p style="font-size:10px; color:#555; margin:3px 0;">🎯 识别 Happy/Sad/Angry，涂鸦画出今天的心情颜色。</p>
+                        <button class="speak-btn" style="width:100%;" onclick="speak('Are you happy today? Show me your big smile! 今天开心吗？露出你的大微笑！', 'zh-CN', event)">🔊 亲子引导语音</button>
+                    </div>
+
+                    <div class="plan-item">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-weight:600; font-size:12px; color:var(--primary-dark);">3. 光影与结构 (世界如何运作)</span>
+                            <span class="pyp-badge">思考者</span>
+                        </div>
+                        <p style="font-size:10px; color:#555; margin:3px 0;">🎯 手电筒踩影子游戏，用积木搭建高塔探索稳定性。</p>
+                        <button class="speak-btn" style="width:100%;" onclick="speak('Look at your shadow! It gets bigger and smaller! 看看你的影子变大变小啦！', 'zh-CN', event)">🔊 亲子引导语音</button>
+                    </div>
+
+                    <div class="plan-item">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-weight:600; font-size:12px; color:var(--primary-dark);">4. 班级与家庭规则 (我们如何组织自己)</span>
+                            <span class="pyp-badge">原则性</span>
+                        </div>
+                        <p style="font-size:10px; color:#555; margin:3px 0;">🎯 听到 Clean up 音乐收拾玩具，排队轮流玩游戏。</p>
+                        <button class="speak-btn" style="width:100%;" onclick="speak('Clean up time! Let\'s put the toys back home! 把玩具送回家吧！', 'zh-CN', event)">🔊 亲子引导语音</button>
+                    </div>
+
+                    <div class="plan-item">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-weight:600; font-size:12px; color:var(--primary-dark);">5. 关爱植物与小动物 (共享地球)</span>
+                            <span class="pyp-badge">关爱者</span>
+                        </div>
+                        <p style="font-size:10px; color:#555; margin:3px 0;">🎯 拿放大镜观察叶子纹路，给小花小草浇水。</p>
+                        <button class="speak-btn" style="width:100%;" onclick="speak('Water the plant gently! 小心给植物浇浇水吧！', 'zh-CN', event)">🔊 亲子引导语音</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>
+                        <span>🎮 感官探究游戏库</span>
+                        <button onclick="rotateGames(event)" style="background: var(--accent); color: white; border: none; padding: 4px 8px; border-radius: 10px; font-size: 10px; cursor: pointer;">🔀 换一组游戏</button>
+                    </h3>
+                    <div class="game-grid" id="game-container"></div>
+                </div>
+            </div>
+
+            <!-- TAB 3: 双语乐园 -->
+            <div id="tab-bilingual" class="tab-content">
+                <div class="card">
+                    <h3>
+                        <span>🗣️ 世外双语与高频表达</span>
+                        <button onclick="rotateBilingual(event)" style="background: var(--blue); color: white; border: none; padding: 4px 8px; border-radius: 10px; font-size: 10px; cursor: pointer;">🔀 换一组词汇/句型</button>
+                    </h3>
+                    <p style="font-size: 10px; color: #666; margin-bottom: 8px;">涵盖小班(K1)至中班(K2)场景，适合父母在家深度辅导：</p>
+                    <div id="bilingual-list-container"></div>
+                </div>
+
+                <div class="card">
+                    <h3>
+                        <span>🎮 双语 TPR 亲子互动游戏</span>
+                        <button onclick="rotateTPR(event)" style="background: var(--primary); color: white; border: none; padding: 4px 8px; border-radius: 10px; font-size: 10px; cursor: pointer;">🔀 换一组游戏</button>
+                    </h3>
+                    <div id="tpr-games-container"></div>
+                </div>
+            </div>
+
+            <!-- TAB 4: 自理技能 -->
+            <div id="tab-skills" class="tab-content">
+                <div class="card">
+                    <h3>🎯 小班核心自理技能 (掌握即过)</h3>
+                    <p style="font-size: 10px; color: #666; margin-bottom: 6px;">学会后标记掌握，无需每天重复打卡：</p>
+                    <div style="background: #EBF3ED; border-radius: 8px; padding: 6px; font-size: 10px; color: var(--primary-dark); font-weight: bold; margin-bottom: 8px; text-align: center;">
+                        🎉 已解锁技能：<span id="mastered-count">0</span> / 8 项
+                    </div>
+                </div>
+
+                <div class="card" id="skills-list-container"></div>
+            </div>
+
+            <!-- TAB 5: 闪光日记 -->
+            <div id="tab-sparkle" class="tab-content">
+                <div class="card" style="background: linear-gradient(135deg, #FFFDF0, #FFF9E6); border: 1px solid #FFE885;">
+                    <h3>
+                        <span>🏆 Casper 的成长勋章墙</span>
+                        <span style="font-size: 10px; color: #B7791F;" id="badge-status-text">已解锁 2 枚</span>
+                    </h3>
+                    <div class="badge-grid">
+                        <div class="badge-item unlocked" id="badge-1">🏅 独立小达人<br><span style="font-size:8px; opacity:0.8;">自理突破</span></div>
+                        <div class="badge-item unlocked" id="badge-2">🌟 PYP小探究家<br><span style="font-size:8px; opacity:0.8;">好奇提问</span></div>
+                        <div class="badge-item" id="badge-3">💬 双语表达者<br><span style="font-size:8px; opacity:0.8;">听懂指令</span></div>
+                        <div class="badge-item" id="badge-4">🤝 礼貌好朋友<br><span style="font-size:8px; opacity:0.8;">学会分享</span></div>
+                        <div class="badge-item" id="badge-5">🌙 睡眠好宝宝<br><span style="font-size:8px; opacity:0.8;">自主入睡</span></div>
+                        <div class="badge-item" id="badge-6">👑 世外小绅士<br><span style="font-size:8px; opacity:0.8;">35颗星解锁</span></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>🌟 今日闪光点记录 <span class="history-recorder" id="current-recorder">妈妈</span></h3>
+                    <p style="font-size: 10px; color: #666; margin-bottom: 8px;">记录 Casper 的进步时刻，给他一颗鼓励的星星！</p>
+
+                    <div style="font-size: 10px; font-weight: bold; margin-bottom: 4px; color: var(--primary-dark);">1. 快速选择闪光维度 (点击勾选)：</div>
+                    
+                    <div style="margin-bottom: 6px;">
+                        <div style="font-size:9px; color:#777; margin-bottom:2px;">🧹 <b>自理能力</b></div>
+                        <span class="sparkle-tag" onclick="toggleTag(this)">👟 自己穿鞋</span>
+                        <span class="sparkle-tag" onclick="toggleTag(this)">🥣 独立吃完饭</span>
+                        <span class="sparkle-tag" onclick="toggleTag(this)">🚽 大声表达如厕</span>
+                        <span class="sparkle-tag" onclick="toggleTag(this)">🧺 收拾玩具归位</span>
+                    </div>
+
+                    <div style="margin-bottom: 6px;">
+                        <div style="font-size:9px; color:#777; margin-bottom:2px;">🗣️ <b>双语与表达</b></div>
+                        <span class="sparkle-tag" onclick="toggleTag(this)">🎧 听懂英文指令</span>
+                        <span class="sparkle-tag" onclick="toggleTag(this)">🗣️ 用英文说感觉</span>
+                        <span class="sparkle-tag" onclick="toggleTag(this)">🎵 唱英文歌谣</span>
+                    </div>
+
+                    <div style="margin-bottom: 6px;">
+                        <div style="font-size:9px; color:#777; margin-bottom:2px;">🔍 <b>世外 PYP 培养目标 (Learner Profile)</b></div>
+                        <span class="sparkle-tag purple-tag" onclick="toggleTag(this)">🔍 探究者 (提问)</span>
+                        <span class="sparkle-tag purple-tag" onclick="toggleTag(this)">🧠 思考者 (动手)</span>
+                        <span class="sparkle-tag purple-tag" onclick="toggleTag(this)">❤️ 关爱者 (分享)</span>
+                        <span class="sparkle-tag purple-tag" onclick="toggleTag(this)">🛡️ 原则性 (守规矩)</span>
+                    </div>
+
+                    <div style="font-size: 10px; font-weight: bold; margin: 8px 0 4px 0; color: var(--primary-dark);">2. Casper 今日情绪状态：</div>
+                    <div style="display: flex; gap: 12px; justify-content: center; margin-bottom: 8px; background: #F9F8F3; padding: 6px; border-radius: 10px;">
+                        <span style="font-size:18px; cursor:pointer;" onclick="selectMood('😊 超棒')">😊 超棒</span>
+                        <span style="font-size:18px; cursor:pointer;" onclick="selectMood('😃 开心')">😃 开心</span>
+                        <span style="font-size:18px; cursor:pointer;" onclick="selectMood('😅 努力中')">😅 努力中</span>
+                    </div>
+
+                    <div style="font-size: 10px; font-weight: bold; margin: 8px 0 4px 0; color: var(--primary-dark);">3. 精彩瞬间手记：</div>
+                    <textarea id="sparkle-note" style="width:100%; height:50px; border:1px solid #DDD; border-radius:10px; padding:6px; font-size:10px; outline:none;" placeholder="记录温馨细节：例如“今天听到 Clean up 音乐后主动收好了所有积木...”"></textarea>
+
+                    <button onclick="saveSparkle(event)" style="width:100%; padding:10px; background:var(--primary); color:white; border:none; border-radius:10px; font-weight:bold; font-size:11px; margin-top:8px; cursor:pointer; box-shadow:0 3px 8px rgba(90,143,112,0.3);">⭐ 点赞并保存日记 (+1星星)</button>
+                </div>
+
+                <div class="card" style="background: #F4F8F5; border-left: 4px solid var(--primary);">
+                    <h4>💡 亲子正向鼓励小贴士 (PYP 反馈)</h4>
+                    <p style="font-size: 9px; color: #555; line-height: 1.5; margin-top: 4px;">
+                        描述具体行为比单纯说“你真棒”更有效！<br>
+                        👉 <i>“我看到你自己把鞋子穿好了，而且没有穿反，你真是个独立的思考者！”</i>
+                    </p>
+                </div>
+
+                <div class="card">
+                    <h4>📜 闪光成长回忆</h4>
+                    <div id="sparkle-history" style="font-size: 10px; color: #555; margin-top: 6px;">暂无历史记录</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部导航栏 -->
+        <div class="footer">
+            <div class="footer-item active" onclick="switchTab('plan')">
+                <span class="footer-icon">📅</span>
+                <div>衔接策略</div>
+            </div>
+            <div class="footer-item" onclick="switchTab('uoi')">
+                <span class="footer-icon">🔍</span>
+                <div>世外UOI</div>
+            </div>
+            <div class="footer-item" onclick="switchTab('bilingual')">
+                <span class="footer-icon">🗣️</span>
+                <div>双语乐园</div>
+            </div>
+            <div class="footer-item" onclick="switchTab('skills')">
+                <span class="footer-icon">🎯</span>
+                <div>自理技能</div>
+            </div>
+            <div class="footer-item" onclick="switchTab('sparkle')">
+                <span class="footer-icon">🌟</span>
+                <div>闪光日记</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function escapeHTML(str) {
+            if (!str) return '';
+            return str.replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
+        }
+
+        const bilingualPool = [
+            [
+                { en: "Line up, please!", cn: "请排队 (手拉前方小朋友衣角)", tag: "K1 校园指令" },
+                { en: "Clean up time!", cn: "收拾玩具归位 (听音乐收拾)", tag: "K1 班级规则" },
+                { en: "Hands on head / Eyes on me!", cn: "双手放头上 / 看老师", tag: "K1 专注指令" },
+                { en: "Can I share this with you?", cn: "我可以和你一起玩这个吗？", tag: "K1 社交表达" }
+            ],
+            [
+                { en: "What does it feel like?", cn: "这摸起来感觉怎么样？(Soft/Hard)", tag: "K1 UOI 探究" },
+                { en: "Look at the shadow!", cn: "看，这里有影子！", tag: "K1 科学感知" },
+                { en: "I can do it by myself!", cn: "我自己可以做到的！", tag: "K1 自理表达" },
+                { en: "May I go to the bathroom?", cn: "我可以去洗手间吗？", tag: "K1 基础求助" }
+            ],
+            [
+                { en: "Let's explore together!", cn: "让我们一起去探索吧！", tag: "K2 合作探究" },
+                { en: "Why does it float on water?", cn: "为什么它会浮在水面上呢？", tag: "K2 科学提问" },
+                { en: "It feels smooth and bumpy.", cn: "这摸起来既光滑又凹凸不平。", tag: "K2 进阶描述" },
+                { en: "I agree with your idea!", cn: "我赞同你的想法！", tag: "K2 表达讨论" }
+            ]
+        ];
+
+        const tprGamePool = [
+            [
+                { title: "1. Simon Says (西蒙说)", desc: "只有听到 'Simon says' 才能做动作！锻炼听力与专注力。", prompt: "Simon says, touch your toes! Great job!" },
+                { title: "2. Color & Shape Hunter (形色大搜寻)", desc: "搜寻指令：Find something red in your room!", prompt: "Find a red circle! 快速找一找家里红色的物品！" },
+                { title: "3. Animal Movement & Freeze (动物定格)", desc: "模仿动物走动：Walk like a bear! 听到 Freeze 立刻定住！", prompt: "Walk like a bear! And freeze!" }
+            ],
+            [
+                { title: "1. Sleeping Lions (睡着的小狮子)", desc: "静心游戏：假装是睡着的小狮子，一动不动，听呼吸声。", prompt: "Shh... Sleeping lions! Take a slow breath!" },
+                { title: "2. Walk, Jump, Hop! (指令快切)", desc: "切换大动作：Walk slowly, jump high, hop like a bunny!", prompt: "Hop like a bunny! Now jump up high!" },
+                { title: "3. Giant & Dwarf (巨人与矮人)", desc: "身体空间控制：Big giant walking vs. Tiny dwarf crawling!", prompt: "Walk like a big giant! Now crawl like a tiny dwarf!" }
+            ],
+            [
+                { title: "1. Touch Something Soft (五感摸一摸)", desc: "找到家里摸起来 Soft、Hard 或 Smooth 的物品。", prompt: "Touch something soft and fluffy! 摸摸软绵绵的东西！" },
+                { title: "2. Mirror Game (双人镜子模仿)", desc: "家长做动作，Casper 像镜子一样无声同步模仿。", prompt: "Look at me! Be my mirror image!" },
+                { title: "3. Stop and Go! (红绿灯律动)", desc: "红绿灯游戏：Green light, run! Red light, stop!", prompt: "Green light, run run run! Red light, stop!" }
+            ]
+        ];
+
+        const gamePool = [
+            { name: "神秘盒触摸", icon: "🪀", tag: "触觉探究", desc: "摸一摸袋子里的物品，用英文说 Soft 还是 Hard！" },
+            { name: "光影手影", icon: "🔦", tag: "视觉探究", desc: "用手电筒照墙壁做手影，看看影子怎么变大变小！" },
+            { name: "气味侦探", icon: "👃", tag: "嗅觉感受", desc: "闻一闻柠檬与香草，猜猜哪一个是 Sweet 的！" },
+            { name: "听力地图", icon: "👂", tag: "听觉定位", desc: "闭上眼睛听摇铃声，用手手指方向！" },
+            { name: "情绪涂鸦", icon: "🎨", tag: "情绪表达", desc: "用颜色画出今天的心情，是用 Yellow 还是 Blue？" },
+            { name: "积木高塔", icon: "🧱", tag: "空间探索", desc: "搭建不同形状的积木，探索怎样放才不会倒！" }
+        ];
+
+        const selfCareSkills = [
+            { id: 1, name: "👟 独立穿脱魔术贴鞋", desc: "分清左右脚，独立撕粘鞋扣" },
+            { id: 2, name: "🧥 穿外套与拉拉链", desc: "双手伸入袖子，对准插销拉上" },
+            { id: 3, name: "🚰 六步洗手法", desc: "用香皂洗手，用毛巾擦干" },
+            { id: 4, name: "🥣 独立进餐不撒饭", desc: "握稳勺子，30分钟内吃完" },
+            { id: 5, name: "🧺 玩具分类归位", desc: "听到 Clean up 后将玩具放入对应箱子" },
+            { id: 6, name: "🧻 擦嘴巴与擦鼻涕", desc: "用纸巾擦干净嘴巴和鼻子" },
+            { id: 7, name: "🥛 双手端杯喝水", desc: "端稳水杯，喝水不洒出来" },
+            { id: 8, name: "🎒 整理个人书包", desc: "把水壶、小手绢放进书包拉好" }
+        ];
+
+        let currentBilingualIndex = 0;
+        let currentTPRIndex = 0;
+        let currentGameIndex = 0;
+        let selectedMoodText = "😊 超棒";
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initUserSelector();
+            updateCountdown();
+            renderBilingualList();
+            renderTPRList();
+            renderGames();
+            renderSkills();
+            loadSparkleHistory();
+            updateBadges();
+        });
+
+        // 切换用户
+        function changeUser() {
+            const user = document.getElementById('current-user').value;
+            const icon = (user === '妈妈' || user === '奶奶' || user === '外婆') ? '👩 ' : '👨 ';
+            
+            document.getElementById('header-user-tag').textContent = icon + user;
+            document.getElementById('current-recorder').textContent = user;
+            localStorage.setItem('casper_current_user', user);
+        }
+
+        function initUserSelector() {
+            const savedUser = localStorage.getItem('casper_current_user') || '妈妈';
+            const userSelect = document.getElementById('current-user');
+            if (userSelect) {
+                userSelect.value = savedUser;
+                changeUser();
+            }
+        }
+
+        function updateCountdown() {
+            const today = new Date();
+            const currentYear = today.getFullYear();
+            let targetDate = new Date(`${currentYear}-09-01T00:00:00`);
+            if (today > targetDate) targetDate = new Date(`${currentYear + 1}-09-01T00:00:00`);
+            const diffDays = Math.ceil((targetDate - today) / (1000 * 60 * 60 * 24));
+            document.getElementById('countdown-days').textContent = diffDays > 0 ? diffDays : "0";
+        }
+
+        function renderBilingualList() {
+            const container = document.getElementById('bilingual-list-container');
+            const currentGroup = bilingualPool[currentBilingualIndex];
+            container.innerHTML = currentGroup.map(item => `
+                <div class="item-row">
+                    <div>
+                        <div style="font-weight: 600; font-size: 11px;">${escapeHTML(item.en)}</div>
+                        <div style="font-size: 9px; color: #666;">${escapeHTML(item.cn)}</div>
+                        <span class="pyp-badge blue" style="margin-top:2px;">${escapeHTML(item.tag)}</span>
+                    </div>
+                    <button class="speak-btn" onclick="speak('${item.en.replace(/'/g, "\\'")}', 'en-US', event)">🔊 听英文</button>
+                </div>
+            `).join('');
+        }
+
+        function rotateBilingual(e) {
+            currentBilingualIndex = (currentBilingualIndex + 1) % bilingualPool.length;
+            renderBilingualList();
+            if (e) addStar(e);
+        }
+
+        function renderTPRList() {
+            const container = document.getElementById('tpr-games-container');
+            const currentGroup = tprGamePool[currentTPRIndex];
+            container.innerHTML = currentGroup.map(g => `
+                <div style="background: #F0F7FF; border: 1px solid #BEE3F8; border-radius: 12px; padding: 10px; margin-bottom: 8px;">
+                    <div style="font-weight: bold; font-size: 11px; color: var(--blue);">${escapeHTML(g.title)}</div>
+                    <div style="font-size: 9px; color: #555; margin: 3px 0;">${escapeHTML(g.desc)}</div>
+                    <button class="speak-btn" style="width:100%; margin-top: 4px;" onclick="speak('${g.prompt.replace(/'/g, "\\'")}', 'en-US', event)">🔊 开始体验互动</button>
+                </div>
+            `).join('');
+        }
+
+        function rotateTPR(e) {
+            currentTPRIndex = (currentTPRIndex + 1) % tprGamePool.length;
+            renderTPRList();
+            if (e) addStar(e);
+        }
+
+        function renderGames() {
+            const container = document.getElementById('game-container');
+            const displayGames = gamePool.slice(currentGameIndex, currentGameIndex + 4);
+            container.innerHTML = displayGames.map(g => `
+                <div class="game-card" onclick="speak('开始游戏：${g.name}！${g.desc}', 'zh-CN', event)">
+                    <div class="game-icon">${g.icon}</div>
+                    <div style="font-size: 11px; font-weight: 600;">${escapeHTML(g.name)}</div>
+                    <div style="font-size: 9px; color: #777;">${escapeHTML(g.tag)}</div>
+                </div>
+            `).join('');
+        }
+
+        function rotateGames(e) {
+            currentGameIndex = (currentGameIndex + 4) % gamePool.length;
+            renderGames();
+            if (e) addStar(e);
+        }
+
+        function renderSkills() {
+            const container = document.getElementById('skills-list-container');
+            const savedMastery = JSON.parse(localStorage.getItem('casper_mastered_skills') || '[]');
+            container.innerHTML = selfCareSkills.map(s => {
+                const isMastered = savedMastery.includes(s.id);
+                return `
+                    <div class="item-row">
+                        <div>
+                            <div style="font-weight: 600; font-size: 11px;">${escapeHTML(s.name)}</div>
+                            <div style="font-size: 9px; color: #666;">${escapeHTML(s.desc)}</div>
+                        </div>
+                        <button class="check-btn ${isMastered ? 'done' : ''}" onclick="toggleSkillMastery(${s.id}, this, event)">
+                            ${isMastered ? '已解锁 ✨' : '标记掌握'}
+                        </button>
+                    </div>
+                `;
+            }).join('');
+            updateMasteryCount();
+        }
+
+        function toggleSkillMastery(skillId, btn, e) {
+            let savedMastery = JSON.parse(localStorage.getItem('casper_mastered_skills') || '[]');
+            if (savedMastery.includes(skillId)) {
+                savedMastery = savedMastery.filter(id => id !== skillId);
+                btn.classList.remove('done');
+                btn.textContent = '标记掌握';
+            } else {
+                savedMastery.push(skillId);
+                btn.classList.add('done');
+                btn.textContent = '已解锁 ✨';
+                if (e) addStar(e);
+            }
+            localStorage.setItem('casper_mastered_skills', JSON.stringify(savedMastery));
+            updateMasteryCount();
+        }
+
+        function updateMasteryCount() {
+            const savedMastery = JSON.parse(localStorage.getItem('casper_mastered_skills') || '[]');
+            document.getElementById('mastered-count').textContent = savedMastery.length;
+        }
+
+        function toggleDailyCheck(btn, e) {
+            if (btn.classList.contains('done')) {
+                btn.classList.remove('done');
+                btn.textContent = '每日打卡';
+            } else {
+                btn.classList.add('done');
+                btn.textContent = '今日已打卡 ✨';
+                if (e) addStar(e);
+            }
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.footer-item').forEach(item => item.classList.remove('active'));
+
+            const target = document.getElementById('tab-' + tabName);
+            if (target) target.classList.add('active');
+
+            const tabMap = {'plan':0, 'uoi':1, 'bilingual':2, 'skills':3, 'sparkle':4};
+            const idx = tabMap[tabName];
+            if (idx !== undefined) {
+                document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+                document.querySelectorAll('.footer-item')[idx].classList.add('active');
+            }
+        }
+
+        function speak(text, lang = 'zh-CN', event = null) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = lang;
+                utterance.rate = lang === 'en-US' ? 0.8 : 0.85;
+                window.speechSynthesis.speak(utterance);
+            }
+            if (event) addStar(event);
+        }
+
+        function addStar(e) {
+            const countEl = document.getElementById('stars-count');
+            let count = parseInt(countEl.textContent || '0') + 1;
+            countEl.textContent = count;
+
+            const star = document.createElement('div');
+            star.className = 'star-animation';
+            star.innerText = '⭐ +1';
+
+            const x = e && e.clientX ? e.clientX : (window.innerWidth / 2);
+            const y = e && e.clientY ? e.clientY : (window.innerHeight / 2);
+            star.style.left = (x - 15) + 'px';
+            star.style.top = (y - 15) + 'px';
+
+            document.body.appendChild(star);
+            setTimeout(() => star.remove(), 800);
+
+            updateBadges();
+        }
+
+        function updateBadges() {
+            const count = parseInt(document.getElementById('stars-count').textContent || '0');
+            let unlocked = 2;
+            if (count >= 27) { document.getElementById('badge-3').classList.add('unlocked'); unlocked++; }
+            if (count >= 29) { document.getElementById('badge-4').classList.add('unlocked'); unlocked++; }
+            if (count >= 31) { document.getElementById('badge-5').classList.add('unlocked'); unlocked++; }
+            if (count >= 35) { document.getElementById('badge-6').classList.add('unlocked'); unlocked++; }
+            document.getElementById('badge-status-text').textContent = `已解锁 ${unlocked} 枚`;
+        }
+
+        function toggleTag(el) { el.classList.toggle('selected'); }
+        function selectMood(mood) { selectedMoodText = mood; }
+
+        function saveSparkle(e) {
+            const selectedTags = Array.from(document.querySelectorAll('.sparkle-tag.selected')).map(t => t.textContent);
+            const noteText = document.getElementById('sparkle-note').value.trim();
+            const recorder = document.getElementById('current-user').value;
+
+            if (selectedTags.length === 0 && !noteText) {
+                alert('请勾选至少一个闪光点或写下一句精彩瞬间哦！');
+                return;
+            }
+
+            const record = {
+                date: new Date().toLocaleDateString(),
+                tags: selectedTags,
+                mood: selectedMoodText,
+                text: noteText,
+                recorder: recorder
+            };
+
+            const history = JSON.parse(localStorage.getItem('casper_sparkle_history') || '[]');
+            history.unshift(record);
+            localStorage.setItem('casper_sparkle_history', JSON.stringify(history));
+
+            document.querySelectorAll('.sparkle-tag.selected').forEach(t => t.classList.remove('selected'));
+            document.getElementById('sparkle-note').value = '';
+
+            loadSparkleHistory();
+            if (e) addStar(e);
+        }
+
+        function loadSparkleHistory() {
+            const container = document.getElementById('sparkle-history');
+            const history = JSON.parse(localStorage.getItem('casper_sparkle_history') || '[]');
+            if (history.length === 0) {
+                container.innerHTML = '<span style="color:#999;">暂无历史日记，快记录 Casper 今天的第一个闪光时刻吧！</span>';
+                return;
+            }
+            container.innerHTML = history.map(h => `
+                <div style="background:#FFF; padding:8px; border-radius:8px; margin-bottom:6px; border:1px solid #ECE9E0;">
+                    <div style="font-weight:bold; color:var(--primary-dark); font-size:10px;">
+                        ${escapeHTML(h.date)} - ${escapeHTML(h.mood)}
+                        ${h.recorder ? `<span class="history-recorder">${escapeHTML(h.recorder)}</span>` : ''}
+                    </div>
+                    <div style="margin: 3px 0;">${h.tags.map(t => `<span class="pyp-badge blue" style="font-size:8px;">${escapeHTML(t)}</span>`).join('')}</div>
+                    ${h.text ? `<div style="color:#555; font-size:9px; line-height:1.4;">"${escapeHTML(h.text)}"</div>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function exportData() {
+            const data = {
+                stars: document.getElementById('stars-count').textContent,
+                masteredSkills: localStorage.getItem('casper_mastered_skills') || '[]',
+                sparkleHistory: localStorage.getItem('casper_sparkle_history') || '[]',
+                exportDate: new Date().toISOString(),
+                version: 'v13.1'
+            };
+            
+            const dataStr = JSON.stringify(data, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `casper_data_backup_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            alert('✅ 数据已备份导出！');
+        }
+
+        function importData(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    if (data.stars) document.getElementById('stars-count').textContent = data.stars;
+                    if (data.masteredSkills) localStorage.setItem('casper_mastered_skills', data.masteredSkills);
+                    if (data.sparkleHistory) localStorage.setItem('casper_sparkle_history', data.sparkleHistory);
+                    
+                    renderSkills();
+                    loadSparkleHistory();
+                    updateBadges();
+                    
+                    alert('✅ 数据恢复成功！');
+                } catch (err) {
+                    alert('❌ 导入失败：文件格式不正确');
+                }
+            };
+            reader.readAsText(file);
+            input.value = '';
+        }
+    </script>
+</body>
+</html>
